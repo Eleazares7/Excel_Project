@@ -5,28 +5,77 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Registro de Usuario</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- SweetAlert2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #f4f4f4;
+            background: linear-gradient(135deg, #e0e7ff, #f9fafb);
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
 
         .register-container {
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background: #ffffff;
+            padding: 2.5rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
             width: 100%;
             max-width: 400px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1e3a8a;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            color: #374151;
+        }
+
+        .form-control, .form-select {
+            border-radius: 8px;
+            padding: 0.75rem;
+            font-size: 0.95rem;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: #3b82f6;
+            box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-primary {
+            background: #3b82f6;
+            border: none;
+            padding: 0.75rem;
+            font-weight: 500;
+            border-radius: 8px;
+            transition: background 0.3s ease, transform 0.2s ease;
+        }
+
+        .btn-primary:hover {
+            background: #2563eb;
+            transform: translateY(-2px);
         }
     </style>
 </head>
 <body>
     <div class="register-container">
-        <h2 class="text-center mb-4">Registrar Usuario</h2>
+        <h2>Registrar Usuario</h2>
         <form id="register-form">
             <div class="mb-3">
                 <label for="email" class="form-label">Correo</label>
@@ -34,9 +83,9 @@
             </div>
             <div class="mb-3">
                 <label for="password" class="form-label">Contraseña</label>
-                <input type="text" class="form-control" id="password" placeholder="Ingresa la contraseña" required>
+                <input type="password" class="form-control" id="password" placeholder="Ingresa la contraseña" required>
             </div>
-            <div class="mb-3">
+            <div class="mb-4">
                 <label for="role" class="form-label">Rol</label>
                 <select class="form-select" id="role" required>
                     <option value="">Selecciona...</option>
@@ -48,6 +97,10 @@
         </form>
     </div>
 
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- SweetAlert2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         document.getElementById("register-form").addEventListener("submit", async (event) => {
             event.preventDefault();
@@ -57,7 +110,12 @@
             const role = document.getElementById("role").value;
 
             if (!email || !password || !role) {
-                alert("Todos los campos son obligatorios.");
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Atención',
+                    text: 'Todos los campos son obligatorios.',
+                    confirmButtonColor: '#3b82f6'
+                });
                 return;
             }
 
@@ -71,13 +129,31 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert(data.message);
-                    document.getElementById("register-form").reset();
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡Éxito!',
+                        text: data.message,
+                        timer: 2000, // Notificación visible por 2 segundos
+                        showConfirmButton: false // Sin botón de confirmación
+                    }).then(() => {
+                        window.location.href = "index.html"; // Redirecciona a index.html
+                    });
+                    document.getElementById("register-form").reset(); // Resetea el formulario
                 } else {
-                    alert(data.message);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: data.message,
+                        confirmButtonColor: '#3b82f6'
+                    });
                 }
             } catch (error) {
-                alert("Error al conectar con el servidor.");
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Error al conectar con el servidor.',
+                    confirmButtonColor: '#3b82f6'
+                });
             }
         });
     </script>
