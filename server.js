@@ -91,7 +91,7 @@ app.post("/register", (req, res) => {
 
   res.json({ message: "Usuario registrado exitosamente." });
 });
-
+console.log("Hola")
 // Ruta para buscar alumnos por matrícula
 app.get("/buscarAlumno/:matricula", (req, res) => {
   const filePath = "alumnos.xlsx"; // Archivo de alumnos
