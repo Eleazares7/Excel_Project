@@ -92,6 +92,20 @@ app.post("/register", (req, res) => {
   res.json({ message: "Usuario registrado exitosamente." });
 });
 
+// Ruta para obtener la lista de todos los alumnos
+app.get("/listaAlumnos", (req, res) => {
+  const filePath = "alumnos.xlsx";
+  if (!fs.existsSync(filePath)) {
+    return res.json([]); // Devolver array vacío si no existe el archivo
+  }
+
+  const workbook = xlsx.readFile(filePath);
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const alumnos = xlsx.utils.sheet_to_json(sheet);
+
+  res.json(alumnos);
+});
+
 // Ruta para buscar alumnos por matrícula
 app.get("/buscarAlumno/:matricula", (req, res) => {
   const filePath = "alumnos.xlsx"; // Archivo de alumnos
@@ -111,6 +125,118 @@ app.get("/buscarAlumno/:matricula", (req, res) => {
   } else {
     res.status(404).json({ message: "Alumno no encontrado." });
   }
+});
+
+// Ruta para registrar nuevos alumnos
+app.post("/registrarAlumno", (req, res) => {
+  const { matricula, nombres, apellidos, grupo, promedio } = req.body;
+
+  if (!matricula || !nombres || !apellidos || !grupo || !promedio) {
+    return res.status(400).json({ message: "Todos los campos son requeridos." });
+  }
+
+  const filePath = "alumnos.xlsx";
+  let alumnos = [];
+
+  // Cargar alumnos existentes
+  if (fs.existsSync(filePath)) {
+    const workbook = xlsx.readFile(filePath);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    alumnos = xlsx.utils.sheet_to_json(sheet);
+  }
+
+  // Verificar si la matrícula ya existe
+  if (alumnos.some(a => String(a.matricula) === matricula)) {
+    return res.status(409).json({ message: "La matrícula ya está registrada." });
+  }
+
+  // Agregar nuevo alumno como texto plano
+  const nuevoAlumno = {
+    matricula: String(matricula), // Convertir a texto plano
+    nombres,
+    apellidos,
+    grupo: String(grupo), // Convertir a texto plano
+    promedio: String(promedio) // Convertir a texto plano
+  };
+
+  alumnos.push(nuevoAlumno);
+
+  // Crear o actualizar el archivo Excel
+  const newWorkbook = xlsx.utils.book_new();
+  const newSheet = xlsx.utils.json_to_sheet(alumnos, {
+    header: ["matricula", "nombres", "apellidos", "grupo", "promedio"]
+  });
+  xlsx.utils.book_append_sheet(newWorkbook, newSheet, "Alumnos");
+  xlsx.writeFile(newWorkbook, filePath);
+
+  res.json({ message: "Alumno registrado exitosamente." });
+});
+// Ruta para editar un alumno
+app.put("/editarAlumno", (req, res) => {
+  const { matricula, nombres, apellidos, grupo, promedio } = req.body;
+
+  if (!matricula || !nombres || !apellidos || !grupo || !promedio) {
+    return res.status(400).json({ message: "Todos los campos son requeridos." });
+  }
+
+  const filePath = "alumnos.xlsx";
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ message: "El archivo de alumnos no existe." });
+  }
+
+  const workbook = xlsx.readFile(filePath);
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  let alumnos = xlsx.utils.sheet_to_json(sheet);
+
+  const alumnoIndex = alumnos.findIndex(a => String(a.matricula) === matricula);
+  if (alumnoIndex === -1) {
+    return res.status(404).json({ message: "Alumno no encontrado." });
+  }
+
+  alumnos[alumnoIndex] = {
+    matricula: String(matricula),
+    nombres,
+    apellidos,
+    grupo: String(grupo),
+    promedio: String(promedio)
+  };
+
+  const newSheet = xlsx.utils.json_to_sheet(alumnos, {
+    header: ["matricula", "nombres", "apellidos", "grupo", "promedio"]
+  });
+  workbook.Sheets[workbook.SheetNames[0]] = newSheet;
+  xlsx.writeFile(workbook, filePath);
+
+  res.json({ message: "Alumno editado exitosamente." });
+});
+
+// Ruta para borrar un alumno
+app.delete("/borrarAlumno/:matricula", (req, res) => {
+  const matricula = req.params.matricula;
+  const filePath = "alumnos.xlsx";
+
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).json({ message: "El archivo de alumnos no existe." });
+  }
+
+  const workbook = xlsx.readFile(filePath);
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  let alumnos = xlsx.utils.sheet_to_json(sheet);
+
+  const alumnoIndex = alumnos.findIndex(a => String(a.matricula) === matricula);
+  if (alumnoIndex === -1) {
+    return res.status(404).json({ message: "Alumno no encontrado." });
+  }
+
+  alumnos.splice(alumnoIndex, 1); // Eliminar el alumno
+
+  const newSheet = xlsx.utils.json_to_sheet(alumnos, {
+    header: ["matricula", "nombres", "apellidos", "grupo", "promedio"]
+  });
+  workbook.Sheets[workbook.SheetNames[0]] = newSheet;
+  xlsx.writeFile(workbook, filePath);
+
+  res.json({ message: "Alumno borrado exitosamente." });
 });
 
 app.listen(3000, () => {

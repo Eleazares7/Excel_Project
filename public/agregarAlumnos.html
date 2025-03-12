@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registro de Alumnos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./Css/AgregarAlumnos.css">
+</head>
+
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="bienvenido.html">Practica Excel</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" href="./agregarAlumnos.html" >Agregar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="eliminar-link">Eliminar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="buscarAlumnos.html" id="buscar-link">Buscar</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="reporte-link">Reporte</a>
+                    </li>
+                </ul>
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <button class="btn btn-danger" id="logout">Cerrar Sesión</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mt-5">
+        <h2>Registro de Alumnos</h2>
+        <form id="registroForm">
+            <div class="mb-3">
+                <label for="matricula" class="form-label">Matrícula</label>
+                <input type="text" class="form-control" id="matricula" required>
+            </div>
+            <div class="mb-3">
+                <label for="nombres" class="form-label">Nombres</label>
+                <input type="text" class="form-control" id="nombres" required>
+            </div>
+            <div class="mb-3">
+                <label for="apellidos" class="form-label">Apellidos</label>
+                <input type="text" class="form-control" id="apellidos" required>
+            </div>
+            <div class="mb-3">
+                <label for="grupo" class="form-label">Grupo</label>
+                <select class="form-select" id="grupo" required>
+                    <option value="" disabled selected>Selecciona un grupo</option>
+                    <option value="101">101</option>
+                    <option value="201">201</option>
+                    <option value="301">301</option>
+                    <option value="401">401</option>
+                    <option value="501">501</option>
+                    <option value="601">601</option>
+                    <option value="701">701</option>
+                    <option value="801">801</option>
+                    <option value="901">901</option>
+                    <option value="1001">1001</option>
+                </select>
+            </div>
+            <div class="mb-3">
+                <label for="promedio" class="form-label">Promedio</label>
+                <input type="text" class="form-control" id="promedio" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Registrar</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="./Js/AgregarAlumnos.js"></script>
+</body>
+
+</html>
