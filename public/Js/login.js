@@ -1,63 +1,106 @@
-document.getElementById("login-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
+document.getElementById("login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
-    const selectedRole = document.getElementById("role").value;
+    const role = document.getElementById("role").value;
 
-    if (!selectedRole) {
+    if (!email || !password || !role) {
         Swal.fire({
-            icon: 'warning',
-            title: 'Atención',
-            text: 'Debes seleccionar un rol.',
-            confirmButtonColor: '#3b82f6'
+            icon: "error",
+            title: "Error",
+            text: "Por favor, completa todos los campos.",
         });
         return;
     }
 
     try {
+        // Paso 1: Validar credenciales
         const response = await fetch("http://localhost:3000/login", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password, role: selectedRole })
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, password, role }),
         });
 
         const data = await response.json();
 
         if (response.ok) {
-            if (data.rol === selectedRole) {
-                localStorage.setItem("usuario", email);
-                localStorage.setItem("rol", data.rol);
-                Swal.fire({
-                    icon: 'success',
-                    title: '¡Éxito!',
-                    text: 'Inicio de sesión exitoso.',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    window.location.href = "bienvenido.html";
+            // Paso 2: Enviar código de verificación
+            const sendCodeResponse = await fetch("http://localhost:3000/send-verification-code", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, action: "login" }),
+            });
+
+            const sendCodeData = await sendCodeResponse.json();
+
+            if (sendCodeResponse.ok) {
+                // Paso 3: Solicitar el código de verificación al usuario
+                const { value: code } = await Swal.fire({
+                    title: "Verificación en 2 Pasos",
+                    text: "Se ha enviado un código de verificación a tu correo. Ingresa el código:",
+                    input: "text",
+                    inputPlaceholder: "Código de 6 dígitos",
+                    showCancelButton: true,
+                    confirmButtonText: "Verificar",
+                    cancelButtonText: "Cancelar",
                 });
+
+                if (code) {
+                    // Paso 4: Verificar el código
+                    const verifyResponse = await fetch("http://localhost:3000/verify-2fa", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ email, code, action: "login" }),
+                    });
+
+                    const verifyData = await verifyResponse.json();
+
+                    if (verifyResponse.ok) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Éxito",
+                            text: "Inicio de sesión exitoso.",
+                        }).then(() => {
+                            if (role === "admin") {
+                                window.location.href = "bienvenido.html";
+                            } else if (role === "trabajador") {
+                                window.location.href = "bienvenido.html";
+                            }
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: verifyData.message,
+                        });
+                    }
+                }
             } else {
                 Swal.fire({
-                    icon: 'error',
-                    title: 'Error',
-                    text: 'El rol seleccionado no coincide con el registrado.',
-                    confirmButtonColor: '#3b82f6'
+                    icon: "error",
+                    title: "Error",
+                    text: sendCodeData.message,
                 });
             }
         } else {
             Swal.fire({
-                icon: 'error',
-                title: 'Error',
+                icon: "error",
+                title: "Error",
                 text: data.message,
-                confirmButtonColor: '#3b82f6'
             });
         }
     } catch (error) {
         Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error al conectar con el servidor.',
-            confirmButtonColor: '#3b82f6'
+            icon: "error",
+            title: "Error",
+            text: "Error en el servidor: " + error.message,
         });
     }
 });

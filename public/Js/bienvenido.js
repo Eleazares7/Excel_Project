@@ -20,12 +20,3 @@ document.getElementById("logout").addEventListener("click", () => {
 
 
 
-document.getElementById("eliminar-link").addEventListener("click", (e) => {
-    e.preventDefault();
-    Swal.fire({ icon: "info", title: "Eliminar", text: "Funcionalidad en desarrollo.", confirmButtonColor: "#3b82f6" });
-});
-
-document.getElementById("reporte-link").addEventListener("click", (e) => {
-    e.preventDefault();
-    Swal.fire({ icon: "info", title: "Reporte", text: "Funcionalidad en desarrollo.", confirmButtonColor: "#3b82f6" });
-});

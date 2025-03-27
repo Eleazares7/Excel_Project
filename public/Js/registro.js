@@ -1,5 +1,5 @@
-document.getElementById("register-form").addEventListener("submit", async (event) => {
-    event.preventDefault();
+document.getElementById("register-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
@@ -7,48 +7,96 @@ document.getElementById("register-form").addEventListener("submit", async (event
 
     if (!email || !password || !role) {
         Swal.fire({
-            icon: 'warning',
-            title: 'Atención',
-            text: 'Todos los campos son obligatorios.',
-            confirmButtonColor: '#3b82f6'
+            icon: "error",
+            title: "Error",
+            text: "Por favor, completa todos los campos.",
         });
         return;
     }
 
     try {
-        const response = await fetch("http://localhost:3000/register", {
+        // Paso 1: Enviar código de verificación antes de registrar
+        const sendCodeResponse = await fetch("http://localhost:3000/send-verification-code", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password, role })
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email, action: "register" }),
         });
 
-        const data = await response.json();
+        const sendCodeData = await sendCodeResponse.json();
 
-        if (response.ok) {
-            Swal.fire({
-                icon: 'success',
-                title: '¡Éxito!',
-                text: data.message,
-                timer: 2000, // Notificación visible por 2 segundos
-                showConfirmButton: false // Sin botón de confirmación
-            }).then(() => {
-                window.location.href = "index.html"; // Redirecciona a index.html
+        if (sendCodeResponse.ok) {
+            // Paso 2: Solicitar el código de verificación al usuario
+            const { value: code } = await Swal.fire({
+                title: "Verificación en 2 Pasos",
+                text: "Se ha enviado un código de verificación a tu correo. Ingresa el código:",
+                input: "text",
+                inputPlaceholder: "Código de 6 dígitos",
+                showCancelButton: true,
+                confirmButtonText: "Verificar",
+                cancelButtonText: "Cancelar",
             });
-            document.getElementById("register-form").reset(); // Resetea el formulario
+
+            if (code) {
+                // Paso 3: Verificar el código
+                const verifyResponse = await fetch("http://localhost:3000/verify-2fa", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({ email, code, action: "register" }),
+                });
+
+                const verifyData = await verifyResponse.json();
+
+                if (verifyResponse.ok) {
+                    // Paso 4: Registrar al usuario si el código es válido
+                    const registerResponse = await fetch("http://localhost:3000/register", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({ email, password, role }),
+                    });
+
+                    const registerData = await registerResponse.json();
+
+                    if (registerResponse.ok) {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Éxito",
+                            text: "Usuario registrado exitosamente.",
+                        }).then(() => {
+                            window.location.href = "index.html";
+                        });
+                    } else {
+                        Swal.fire({
+                            icon: "error",
+                            title: "Error",
+                            text: registerData.message,
+                        });
+                    }
+                } else {
+                    Swal.fire({
+                        icon: "error",
+                        title: "Error",
+                        text: verifyData.message,
+                    });
+                }
+            }
         } else {
             Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: data.message,
-                confirmButtonColor: '#3b82f6'
+                icon: "error",
+                title: "Error",
+                text: sendCodeData.message,
             });
         }
     } catch (error) {
         Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: 'Error al conectar con el servidor.',
-            confirmButtonColor: '#3b82f6'
+            icon: "error",
+            title: "Error",
+            text: "Error en el servidor: " + error.message,
         });
     }
 });
